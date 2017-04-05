@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import time
@@ -140,6 +142,10 @@ parser.add_argument(
     help='Supply to use the SpiNNaker backend (will override -b).')
 
 parser.add_argument(
+    '--nengo_dl', action='store_true',
+    help='Supply to use the NengoDL backend (will override -b).')
+
+parser.add_argument(
     '--nengo_gui', action='store_true',
     help='Supply to use the nengo_viz vizualizer to run Spaun.')
 
@@ -165,10 +171,10 @@ args = parser.parse_args()
 # Disable cache unless seed is set (i.e. seed > 0) or if the '--enable_cache'
 # option is given
 if args.seed > 0 or args.enable_cache:
-    print "USING CACHE"
+    print("USING CACHE")
     nengo.rc.set("decoder_cache", "enabled", "True")
 else:
-    print "NOT USING CACHE"
+    print("NOT USING CACHE")
     nengo.rc.set("decoder_cache", "enabled", "False")
 
 # ----- Backend Configurations -----
@@ -179,13 +185,15 @@ if args.mpi:
     cfg.backend = 'mpi'
 if args.spinn:
     cfg.backend = 'spinn'
+if args.nengo_dl:
+    cfg.backend = 'nengo_dl'
 
-print "BACKEND: %s" % cfg.backend.upper()
+print("BACKEND: %s" % cfg.backend.upper())
 
 # ----- Batch runs -----
 for n in range(args.n):
-    print ("\n======================== RUN %i OF %i ========================" %
-           (n + 1, args.n))
+    print("\n======================== RUN %i OF %i ========================" %
+          (n + 1, args.n))
 
     # ----- Seeeeeeeed -----
     if args.seed < 0:
@@ -194,7 +202,7 @@ for n in range(args.n):
         seed = args.seed
 
     cfg.set_seed(seed)
-    print "MODEL SEED: %i" % cfg.seed
+    print("MODEL SEED: %i" % cfg.seed)
 
     # ----- Model Configurations -----
     vocab.sp_dim = args.d
@@ -202,19 +210,19 @@ for n in range(args.n):
 
     # Parse --config options
     if args.config is not None:
-        print "USING CONFIGURATION OPTIONS: "
+        print("USING CONFIGURATION OPTIONS: ")
         for cfg_options in args.config:
             cfg_opts = cfg_options.split('=')
             cfg_param = cfg_opts[0]
             cfg_value = cfg_opts[1]
             if hasattr(cfg, cfg_param):
-                print "  * cfg: " + str(cfg_options)
+                print("  * cfg: " + str(cfg_options))
                 setattr(cfg, cfg_param, eval(cfg_value))
             elif hasattr(experiment, cfg_param):
-                print "  * experiment: " + str(cfg_options)
+                print("  * experiment: " + str(cfg_options))
                 setattr(experiment, cfg_param, eval(cfg_value))
             elif hasattr(vocab, cfg_param):
-                print "  * vocab: " + str(cfg_options)
+                print("  * vocab: " + str(cfg_options))
                 setattr(vocab, cfg_param, eval(cfg_value))
 
     # ----- Check if data folder exists -----
@@ -253,7 +261,7 @@ for n in range(args.n):
     else:
         cfg.probe_data_filename = get_probe_data_filename(suffix=args.tag)
 
-    # ----- Initalize looger and write header data -----
+    # ----- Initalize logger and write header data -----
     logger.initialize(cfg.data_dir, cfg.probe_data_filename[:-4] + '_log.txt')
     cfg.write_header()
     experiment.write_header()
@@ -261,14 +269,14 @@ for n in range(args.n):
     logger.flush()
 
     # ----- Raw stimulus seq -----
-    print "RAW STIM SEQ: %s" % (str(experiment.raw_seq_str))
+    print("RAW STIM SEQ: %s" % (str(experiment.raw_seq_str)))
 
     # ----- Spaun proper -----
     model = Spaun()
 
     # ----- Display stimulus seq -----
-    print "PROCESSED RAW STIM SEQ: %s" % (str(experiment.raw_seq_list))
-    print "STIMULUS SEQ: %s" % (str(experiment.stim_seq_list))
+    print("PROCESSED RAW STIM SEQ: %s" % (str(experiment.raw_seq_list)))
+    print("STIMULUS SEQ: %s" % (str(experiment.stim_seq_list)))
 
     # ----- Calculate runtime -----
     # Note: Moved up here so that we have data to disable probes if necessary
@@ -278,12 +286,12 @@ for n in range(args.n):
     make_probes = not args.noprobes
 
     if runtime > max_probe_time and make_probes:
-        print (">>> !!! WARNING !!! EST RUNTIME > %0.2fs - DISABLING PROBES" %
-               max_probe_time)
+        print(">>> !!! WARNING !!! EST RUNTIME > %0.2fs - DISABLING PROBES" %
+              max_probe_time)
         make_probes = False
 
     if make_probes:
-        print "PROBE FILENAME: %s" % cfg.probe_data_filename
+        print("PROBE FILENAME: %s" % cfg.probe_data_filename)
         probe_cfg = default_probe_config(model, vocab, cfg.sim_dt,
                                          cfg.data_dir,
                                          cfg.probe_data_filename)
@@ -291,37 +299,37 @@ for n in range(args.n):
     # ----- Set up animation probes -----
     if args.showanim or args.showiofig or args.probeio:
         anim_probe_data_filename = cfg.probe_data_filename[:-4] + '_anim.npz'
-        print "ANIM PROBE FILENAME: %s" % anim_probe_data_filename
+        print("ANIM PROBE FILENAME: %s" % anim_probe_data_filename)
         probe_anim_cfg = default_anim_config(model, vocab,
                                              cfg.sim_dt, cfg.data_dir,
                                              anim_probe_data_filename)
 
     # ----- Neuron count debug -----
-    print "MODEL N_NEURONS:  %i" % (get_total_n_neurons(model))
+    print("MODEL N_NEURONS:  %i" % (get_total_n_neurons(model)))
     if hasattr(model, 'vis'):
-        print "- vis  n_neurons: %i" % (get_total_n_neurons(model.vis))
+        print("- vis  n_neurons: %i" % (get_total_n_neurons(model.vis)))
     if hasattr(model, 'ps'):
-        print "- ps   n_neurons: %i" % (get_total_n_neurons(model.ps))
+        print("- ps   n_neurons: %i" % (get_total_n_neurons(model.ps)))
     if hasattr(model, 'bg'):
-        print "- bg   n_neurons: %i" % (get_total_n_neurons(model.bg))
+        print("- bg   n_neurons: %i" % (get_total_n_neurons(model.bg)))
     if hasattr(model, 'thal'):
-        print "- thal n_neurons: %i" % (get_total_n_neurons(model.thal))
+        print("- thal n_neurons: %i" % (get_total_n_neurons(model.thal)))
     if hasattr(model, 'enc'):
-        print "- enc  n_neurons: %i" % (get_total_n_neurons(model.enc))
+        print("- enc  n_neurons: %i" % (get_total_n_neurons(model.enc)))
     if hasattr(model, 'mem'):
-        print "- mem  n_neurons: %i" % (get_total_n_neurons(model.mem))
+        print("- mem  n_neurons: %i" % (get_total_n_neurons(model.mem)))
     if hasattr(model, 'trfm'):
-        print "- trfm n_neurons: %i" % (get_total_n_neurons(model.trfm))
+        print("- trfm n_neurons: %i" % (get_total_n_neurons(model.trfm)))
     if hasattr(model, 'dec'):
-        print "- dec  n_neurons: %i" % (get_total_n_neurons(model.dec))
+        print("- dec  n_neurons: %i" % (get_total_n_neurons(model.dec)))
     if hasattr(model, 'mtr'):
-        print "- mtr  n_neurons: %i" % (get_total_n_neurons(model.mtr))
+        print("- mtr  n_neurons: %i" % (get_total_n_neurons(model.mtr)))
 
     # ----- Connections count debug -----
-    print "MODEL N_CONNECTIONS: %i" % (len(model.all_connections))
+    print("MODEL N_CONNECTIONS: %i" % (len(model.all_connections)))
 
     # ----- Spaun simulation build -----
-    print "START BUILD"
+    print("START BUILD")
     timestamp = time.time()
 
     if args.nengo_gui:
@@ -330,35 +338,35 @@ for n in range(args.n):
             os.environ['PYOPENCL_CTX'] = '%s:%s' % (args.ocl_platform,
                                                     args.ocl_device)
 
-        print "STARTING NENGO_GUI"
+        print("STARTING NENGO_GUI")
         import nengo_gui
         nengo_gui.GUI(__file__, model=model, locals=locals(),
                       interactive=False).start()
-        print "NENGO_GUI STOPPED"
+        print("NENGO_GUI STOPPED")
         sys.exit()
 
     if cfg.use_opencl:
         import pyopencl as cl
         import nengo_ocl
 
-        print "------ OCL ------"
-        print "AVAILABLE PLATFORMS:"
-        print '  ' + '\n  '.join(map(str, cl.get_platforms()))
+        print("------ OCL ------")
+        print("AVAILABLE PLATFORMS:")
+        print('  ' + '\n  '.join(map(str, cl.get_platforms())))
 
         pltf = cl.get_platforms()[args.ocl_platform]
-        print "USING PLATFORM:"
-        print '  ' + str(pltf)
+        print("USING PLATFORM:")
+        print('  ' + str(pltf))
 
-        print "AVAILABLE DEVICES:"
-        print '  ' + '\n  '.join(map(str, pltf.get_devices()))
+        print("AVAILABLE DEVICES:")
+        print('  ' + '\n  '.join(map(str, pltf.get_devices())))
         if args.ocl_device >= 0:
             ctx = cl.Context([pltf.get_devices()[args.ocl_device]])
-            print "USING DEVICE:"
-            print '  ' + str(pltf.get_devices()[args.ocl_device])
+            print("USING DEVICE:")
+            print('  ' + str(pltf.get_devices()[args.ocl_device]))
         else:
             ctx = cl.Context(pltf.get_devices())
-            print "USING DEVICES:"
-            print '  ' + '\n  '.join(map(str, pltf.get_devices()))
+            print("USING DEVICES:")
+            print('  ' + '\n  '.join(map(str, pltf.get_devices())))
         sim = nengo_ocl.Simulator(model, dt=cfg.sim_dt, context=ctx,
                                   profiling=args.ocl_profile)
     elif cfg.use_mpi:
@@ -371,7 +379,7 @@ for n in range(args.n):
              mpi_saveext)
         mpi_savefile = os.path.join(cfg.data_dir, mpi_savefile)
 
-        print "USING MPI - Saving to: %s" % (mpi_savefile)
+        print("USING MPI - Saving to: %s" % (mpi_savefile))
 
         if args.mpi_p_auto:
             assignments = {}
@@ -385,17 +393,42 @@ for n in range(args.n):
             sim = nengo_mpi.Simulator(model, dt=cfg.sim_dt,
                                       partitioner=partitioner,
                                       save_file=mpi_savefile)
+    elif cfg.use_nengo_dl:
+        import nengo_dl
+
+        sim = nengo_dl.Simulator(
+            model, unroll_simulation=True, step_blocks=50, device="/gpu:0")
     else:
         sim = nengo.Simulator(model, dt=cfg.sim_dt)
 
     t_build = time.time() - timestamp
     timestamp = time.time()
-    print "BUILD FINISHED - build time: %fs" % t_build
+    print("BUILD FINISHED - build time: %fs" % t_build)
 
     # ----- Spaun simulation run -----
     experiment.reset()
-    if cfg.use_opencl or cfg.use_ref:
-        print "START SIM - est_runtime: %f" % runtime
+
+    if cfg.use_mpi:
+        print("MODEL N_NEURONS: %i" % (get_total_n_neurons(model)))
+        print("FINISHED! - Build time: %fs" % (t_build))
+
+        if args.mpi_compress_save:
+            import gzip
+            print("COMPRESSING net file to '%s'" % (mpi_savefile + '.gz'))
+
+            with open(mpi_savefile, 'rb') as f_in:
+                with gzip.open(mpi_savefile + '.gz', 'wb') as f_out:
+                    f_out.writelines(f_in)
+
+            os.remove(mpi_savefile)
+
+            print("UPLOAD '%s' to MPI cluster and decompress to run" % \
+                (mpi_savefile + '.gz'))
+        else:
+            print("UPLOAD '%s' to MPI cluster to run" % mpi_savefile)
+        t_simrun = -1
+    else:
+        print("START SIM - est_runtime: %f" % runtime)
         sim.run(runtime)
 
         # Close output logging file
@@ -406,28 +439,9 @@ for n in range(args.n):
             sim.print_profiling()
 
         t_simrun = time.time() - timestamp
-        print "MODEL N_NEURONS: %i" % (get_total_n_neurons(model))
-        print "FINISHED! - Build time: %fs, Sim time: %fs" % (t_build,
-                                                              t_simrun)
-    else:
-        print "MODEL N_NEURONS: %i" % (get_total_n_neurons(model))
-        print "FINISHED! - Build time: %fs" % (t_build)
-
-        if args.mpi_compress_save:
-            import gzip
-            print "COMPRESSING net file to '%s'" % (mpi_savefile + '.gz')
-
-            with open(mpi_savefile, 'rb') as f_in:
-                with gzip.open(mpi_savefile + '.gz', 'wb') as f_out:
-                    f_out.writelines(f_in)
-
-            os.remove(mpi_savefile)
-
-            print "UPLOAD '%s' to MPI cluster and decompress to run" % \
-                (mpi_savefile + '.gz')
-        else:
-            print "UPLOAD '%s' to MPI cluster to run" % mpi_savefile
-        t_simrun = -1
+        print("MODEL N_NEURONS: %i" % (get_total_n_neurons(model)))
+        print("FINISHED! - Build time: %fs, Sim time: %fs" % (t_build,
+                                                              t_simrun))
 
     # ----- Generate debug printouts -----
     n_bytes_ev = 0
@@ -455,7 +469,7 @@ for n in range(args.n):
 
     # ----- Write probe data to file -----
     if make_probes and not cfg.use_mpi:
-        print "WRITING PROBE DATA TO FILE"
+        print("WRITING PROBE DATA TO FILE")
         probe_cfg.write_simdata_to_file(sim, experiment)
 
         if args.showgrph:
@@ -470,12 +484,12 @@ for n in range(args.n):
             logger.write("\n# " + " ".join(subprocess_call_list))
 
             # Open subprocess
-            print "CALLING: %s" % (" ".join(subprocess_call_list))
+            print("CALLING: %s" % (" ".join(subprocess_call_list)))
             import subprocess
             subprocess.Popen(subprocess_call_list)
 
     if (args.showanim or args.showiofig or args.probeio) and not cfg.use_mpi:
-        print "WRITING ANIMATION PROBE DATA TO FILE"
+        print("WRITING ANIMATION PROBE DATA TO FILE")
         probe_anim_cfg.write_simdata_to_file(sim, experiment)
 
         if args.showanim or args.showiofig:
@@ -493,7 +507,7 @@ for n in range(args.n):
             logger.write("\n# " + " ".join(subprocess_call_list))
 
             # Open subprocess
-            print "CALLING: %s" % (" ".join(subprocess_call_list))
+            print("CALLING: %s" % (" ".join(subprocess_call_list)))
             import subprocess
             subprocess.Popen(subprocess_call_list)
 

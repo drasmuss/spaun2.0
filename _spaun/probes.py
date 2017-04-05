@@ -4,7 +4,7 @@ import numpy as np
 import nengo
 from nengo.spa import Vocabulary
 
-from configurator import cfg
+from .configurator import cfg
 from .modules.transform_system import TransformationSystemDummy
 from .modules.motor.data import mtr_data
 

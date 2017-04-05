@@ -100,6 +100,8 @@ class SpaunConfig(object):
             self._backend = 'mpi'
         elif val in ['spinn']:
             self._backend = 'spinn'
+        elif val in ['dl', 'nengo_dl']:
+            self._backend = 'nengo_dl'
         else:
             raise RuntimeError('Exception! "%s" backend is not supported!' %
                                val)
@@ -121,7 +123,14 @@ class SpaunConfig(object):
         return self.backend == 'spinn'
 
     @property
+    def use_nengo_dl(self):
+        return self.backend == 'nengo_dl'
+
+    @property
     def mtr_arm_class(self):
+        if self.mtr_arm_type is None:
+            return lambda: None
+
         arm_module = import_module('.arms.%s' % self.mtr_arm_type, __package__)
         # arm_module = __import__('.arms.%s' % self.mtr_arm_type,
                                 # globals(), locals(), 'Arm')
