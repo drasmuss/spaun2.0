@@ -397,7 +397,7 @@ for n in range(args.n):
         import nengo_dl
 
         sim = nengo_dl.Simulator(
-            model, unroll_simulation=True, step_blocks=50, device="/gpu:0")
+            model, unroll_simulation=50, device="/gpu:0")
     else:
         sim = nengo.Simulator(model, dt=cfg.sim_dt)
 
