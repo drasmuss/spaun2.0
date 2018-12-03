@@ -1,0 +1,15 @@
+Spaun2.0
+========
+
+Running the Spaun [1]_ model in Nengo 2.0.
+
+.. [1] Chris Eliasmith, Terrence C. Stewart, Xuan Choo, Trevor Bekolay,
+   Travis DeWolf, Yichuan Tang, and Daniel Rasmussen. A large-scale model
+   of the functioning brain. Science, 338:1202-1205, 2012.
+   URL: http://nengo.ca/publications/spaunsciencepaper
+   doi:10.1126/science.1225266.
+
+
+This is a *non functional* fork of the spaun repo.  However, it is pip
+installable and the repo size has been reduced significantly by eliminating
+data/parameter files, so it is useful for running structural tests with spaun.
